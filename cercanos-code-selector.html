@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cercanos | Quality & Risk Code Selector</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #faf8f5 0%, #f5f0eb 100%);
+            min-height: 100vh;
+            color: #2d1628;
+        }
+        :root {
+            --orange: #de8130;
+            --tan: #a47864;
+            --deep-purple: #2d1628;
+            --blush: #e6d9d3;
+            --brown: #5a4b44;
+            --olive: #777b41;
+            --gold: #f3bf57;
+            --navy: #2f6089;
+            --purple: #652875;
+            --green: #4caf50;
+            --red: #e53935;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(45, 22, 40, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo-container { display: flex; align-items: center; gap: 10px; }
+        .logo-text { font-size: 22px; font-weight: 700; color: var(--olive); }
+        .heart-icon { color: var(--orange); font-size: 18px; }
+        .tagline { font-size: 11px; color: var(--tan); font-style: italic; }
+
+        /* Quick Links Bar */
+        .quick-links {
+            background: linear-gradient(135deg, var(--deep-purple) 0%, #4a2d42 100%);
+            padding: 8px 24px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .quick-links-label { color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 500; }
+        .quick-link {
+            color: white;
+            text-decoration: none;
+            font-size: 12px;
+            padding: 4px 12px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            transition: all 0.2s;
+        }
+        .quick-link:hover { background: rgba(255,255,255,0.25); }
+        .quick-link.active { background: var(--orange); }
+
+        /* Main Layout */
+        .main-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        @media (max-width: 1200px) {
+            .main-container { grid-template-columns: 1fr; }
+        }
+
+        /* Left Panel */
+        .left-panel { display: flex; flex-direction: column; gap: 16px; }
+
+        .panel {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(45, 22, 40, 0.04);
+        }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--blush);
+        }
+        .panel-icon {
+            width: 32px; height: 32px;
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+        }
+        .panel-icon.cardio { background: #fff3e0; }
+        .panel-icon.behavioral { background: #e8f5e9; }
+        .panel-icon.meds { background: #e3f2fd; }
+        .panel-title { font-size: 14px; font-weight: 600; color: var(--deep-purple); }
+
+        /* Input Groups */
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .input-group { display: flex; flex-direction: column; gap: 3px; }
+        .input-group.full-width { grid-column: span 2; }
+        .input-label { font-size: 11px; font-weight: 500; color: var(--brown); }
+        .input-label .unit { color: var(--tan); }
+        .input-field {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            width: 100%;
+        }
+        .input-field:focus { outline: none; border-color: var(--olive); }
+        select.input-field {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%235a4b44' d='M5 7L1 3h8z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }
+
+        /* Medication Grid */
+        .med-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .med-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 8px;
+            background: #faf8f5;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 11px;
+        }
+        .med-item:hover { background: var(--blush); }
+        .med-item.selected { background: linear-gradient(135deg, rgba(222,129,48,0.15) 0%, rgba(243,191,87,0.15) 100%); border: 1px solid var(--orange); }
+        .med-item input { cursor: pointer; }
+        .med-name { flex: 1; color: var(--deep-purple); }
+        .med-class { font-size: 9px; color: var(--tan); }
+
+        /* Right Panel */
+        .right-panel {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(45, 22, 40, 0.04);
+        }
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--blush);
+        }
+        .output-title { font-size: 16px; font-weight: 600; color: var(--deep-purple); }
+        .clear-btn {
+            padding: 6px 14px;
+            background: var(--blush);
+            border: none;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--brown);
+            cursor: pointer;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            border-bottom: 2px solid var(--blush);
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 8px 14px;
+            border: none;
+            background: transparent;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--tan);
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+        .tab:hover { background: var(--blush); color: var(--brown); }
+        .tab.active { background: var(--orange); color: white; }
+        .tab.suspect { background: var(--purple); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Section Controls */
+        .section-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+        }
+        .section-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-badge {
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .section-badge.quality { background: #e3f2fd; color: #1565c0; }
+        .section-badge.icd { background: #f3e5f5; color: var(--purple); }
+        .section-badge.hcc { background: #fff3e0; color: #e65100; }
+        .section-badge.suspect { background: #fce4ec; color: #c2185b; }
+        .section-title { font-size: 12px; font-weight: 600; color: var(--deep-purple); }
+        .section-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .section-btn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .section-btn.accept-all { background: var(--green); color: white; }
+        .section-btn.accept-all:hover { background: #388e3c; }
+        .section-btn.reject-all { background: var(--red); color: white; }
+        .section-btn.reject-all:hover { background: #c62828; }
+
+        /* Code Cards */
+        .code-section { margin-bottom: 20px; }
+        .code-list { display: flex; flex-direction: column; gap: 6px; }
+        .code-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: #faf8f5;
+            border-radius: 6px;
+            border-left: 3px solid #cbd5e0;
+            transition: all 0.2s;
+        }
+        .code-card:hover { background: var(--blush); }
+        .code-card.accepted { background: #e8f5e9; border-left-color: var(--green); }
+        .code-card.rejected { background: #ffebee; border-left-color: var(--red); opacity: 0.6; }
+        .code-card.has-hcc {
+            border-left-color: var(--orange);
+            background: linear-gradient(90deg, rgba(222,129,48,0.08) 0%, #faf8f5 100%);
+        }
+        .code-card.has-hcc.accepted {
+            background: linear-gradient(90deg, rgba(222,129,48,0.15) 0%, #e8f5e9 100%);
+            border-left-color: var(--green);
+        }
+        .code-card.suspect-code {
+            border-left-color: var(--purple);
+            background: linear-gradient(90deg, rgba(101,40,117,0.08) 0%, #faf8f5 100%);
+        }
+
+        .code-value {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--purple);
+            background: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            min-width: 65px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        .code-info { flex: 1; }
+        .code-desc { font-size: 12px; color: var(--deep-purple); margin-bottom: 3px; }
+        .code-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+        .hcc-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--orange) 0%, #c76a1e 100%);
+            color: white;
+        }
+        .hcc-badge .raf { background: rgba(255,255,255,0.3); padding: 1px 3px; border-radius: 3px; }
+        .payer-badge {
+            padding: 1px 5px;
+            border-radius: 6px;
+            font-size: 9px;
+            font-weight: 600;
+        }
+        .payer-badge.ma { background: #fff3e0; color: #e65100; }
+        .payer-badge.comm { background: #e3f2fd; color: #1565c0; }
+
+        /* Accept/Reject Buttons */
+        .action-btns {
+            display: flex;
+            gap: 6px;
+            margin-left: auto;
+        }
+        .accept-btn, .reject-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .accept-btn { background: #c8e6c9; color: #2e7d32; }
+        .accept-btn:hover { background: var(--green); color: white; }
+        .accept-btn.active { background: var(--green); color: white; }
+        .reject-btn { background: #ffcdd2; color: #c62828; }
+        .reject-btn:hover { background: var(--red); color: white; }
+        .reject-btn.active { background: var(--red); color: white; }
+
+        /* Documentation Cards */
+        .doc-card {
+            background: #f8fdf8;
+            border: 1px solid #c8e6c9;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .doc-card.selected { border-color: var(--olive); border-width: 2px; }
+        .doc-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .doc-checkbox { width: 16px; height: 16px; cursor: pointer; }
+        .doc-card-title { font-size: 12px; font-weight: 600; color: var(--olive); flex: 1; }
+        .doc-text {
+            font-size: 12px;
+            color: var(--deep-purple);
+            line-height: 1.5;
+            font-family: Georgia, serif;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #e8f5e9;
+            width: 100%;
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        /* Suspect Codes */
+        .suspect-alert {
+            background: linear-gradient(135deg, rgba(101,40,117,0.1) 0%, rgba(199,106,30,0.1) 100%);
+            border: 2px solid var(--purple);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+        .suspect-alert-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .suspect-alert-title { font-size: 13px; font-weight: 600; color: var(--purple); }
+        .suspect-alert-text { font-size: 12px; color: var(--deep-purple); }
+
+        /* RAF Summary */
+        .raf-summary {
+            background: linear-gradient(135deg, rgba(222,129,48,0.1) 0%, rgba(243,191,87,0.1) 100%);
+            border: 2px solid var(--orange);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+        .raf-summary-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .raf-summary-title { font-size: 13px; font-weight: 600; color: var(--orange); }
+        .raf-values { display: flex; gap: 24px; }
+        .raf-item { }
+        .raf-label { font-size: 11px; color: var(--brown); }
+        .raf-value { font-size: 22px; font-weight: 700; color: var(--orange); }
+
+        /* Selection Counter */
+        .selection-counter {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 8px 12px;
+            background: var(--blush);
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        .counter-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--brown);
+        }
+        .counter-value {
+            font-weight: 700;
+            color: var(--olive);
+            background: white;
+            padding: 1px 6px;
+            border-radius: 10px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 2px solid var(--blush);
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .action-btn.primary { background: linear-gradient(135deg, var(--olive) 0%, #5a5d32 100%); color: white; }
+        .action-btn.secondary { background: linear-gradient(135deg, var(--orange) 0%, #c76a1e 100%); color: white; }
+        .action-btn.athena { background: linear-gradient(135deg, var(--navy) 0%, #1e4d6b 100%); color: white; }
+        .action-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--tan);
+        }
+        .empty-state-icon { font-size: 40px; margin-bottom: 10px; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--tan);
+            font-size: 12px;
+        }
+
+        /* Summary Note */
+        .summary-note {
+            background: white;
+            border: 2px solid var(--olive);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .summary-section { margin-bottom: 12px; }
+        .summary-section-title { font-weight: bold; color: var(--olive); margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-container">
+            <span class="heart-icon">❤️</span>
+            <span class="logo-text">Cercanos</span>
+            <span class="tagline">connecting care & community</span>
+        </div>
+        <div style="font-size: 12px; color: var(--tan);">Quality & Risk Code Selector</div>
+    </div>
+
+    <div class="quick-links">
+        <span class="quick-links-label">Quick Access:</span>
+        <a href="cercanos-code-selector-v4.html" class="quick-link active">📋 Code Selector</a>
+        <a href="cercanos-dashboard.html" class="quick-link">📊 Metrics Dashboard</a>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <!-- Clinical Values -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-icon cardio">🩺</div>
+                    <div class="panel-title">Clinical Values</div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label class="input-label">Systolic BP <span class="unit">(mmHg)</span></label>
+                        <input type="number" class="input-field" id="sbp" placeholder="120">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Diastolic BP <span class="unit">(mmHg)</span></label>
+                        <input type="number" class="input-field" id="dbp" placeholder="80">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label class="input-label">A1C <span class="unit">(%)</span></label>
+                        <input type="number" step="0.1" class="input-field" id="a1c" placeholder="6.5">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">LDL <span class="unit">(mg/dL)</span></label>
+                        <input type="number" class="input-field" id="ldl" placeholder="100">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label class="input-label">BMI <span class="unit">(kg/m²)</span></label>
+                        <input type="number" step="0.1" class="input-field" id="bmi" placeholder="25.0">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">eGFR <span class="unit">(mL/min)</span></label>
+                        <input type="number" class="input-field" id="egfr" placeholder="90">
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group full-width">
+                        <label class="input-label">PHQ-9 Score</label>
+                        <select class="input-field" id="phq9">
+                            <option value="">Select score...</option>
+                            <option value="0">0-4 (Minimal)</option>
+                            <option value="5">5-9 (Mild)</option>
+                            <option value="10">10-14 (Moderate)</option>
+                            <option value="15">15-19 (Mod-Severe)</option>
+                            <option value="20">20-27 (Severe)</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="action-btn primary" style="width:100%; margin-top: 10px;" onclick="generateCodes()">
+                    🔍 Generate Code Recommendations
+                </button>
+            </div>
+
+            <!-- Medications -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-icon meds">💊</div>
+                    <div class="panel-title">Current Medications</div>
+                </div>
+                <div class="med-grid" id="medGrid"></div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="output-header">
+                <div class="output-title">Recommended Codes</div>
+                <button class="clear-btn" onclick="clearAll()">Clear All</button>
+            </div>
+
+            <div class="selection-counter" id="selectionCounter">
+                <div class="counter-item">Quality: <span class="counter-value" id="qualityCount">0</span></div>
+                <div class="counter-item">ICD-10: <span class="counter-value" id="icdCount">0</span></div>
+                <div class="counter-item">Suspect: <span class="counter-value" id="suspectCount">0</span></div>
+                <div class="counter-item">Docs: <span class="counter-value" id="docCount">0</span></div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('quality')">Quality Codes</button>
+                <button class="tab" onclick="showTab('icd')">ICD-10 + HCC</button>
+                <button class="tab" onclick="showTab('suspect')">Suspect Diagnoses</button>
+                <button class="tab" onclick="showTab('documentation')">Documentation</button>
+                <button class="tab" onclick="showTab('summary')">Summary Note</button>
+            </div>
+
+            <!-- Quality Codes Tab -->
+            <div id="quality-tab" class="tab-content active">
+                <div id="cptii-section" class="code-section"></div>
+                <div id="gcode-section" class="code-section"></div>
+                <div id="mips-section" class="code-section"></div>
+            </div>
+
+            <!-- ICD-10 Tab -->
+            <div id="icd-tab" class="tab-content">
+                <div class="raf-summary">
+                    <div class="raf-summary-header">
+                        <span>📈</span>
+                        <span class="raf-summary-title">RAF Impact (Accepted Codes)</span>
+                    </div>
+                    <div class="raf-values">
+                        <div class="raf-item">
+                            <div class="raf-label">Medicare Advantage</div>
+                            <div class="raf-value" id="rafMa">0.000</div>
+                        </div>
+                        <div class="raf-item">
+                            <div class="raf-label">Commercial (ACA)</div>
+                            <div class="raf-value" id="rafComm">0.000</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="icd-section" class="code-section"></div>
+            </div>
+
+            <!-- Suspect Diagnoses Tab -->
+            <div id="suspect-tab" class="tab-content">
+                <div class="suspect-alert">
+                    <div class="suspect-alert-header">
+                        <span>🔍</span>
+                        <span class="suspect-alert-title">Medication-Based Suspect Diagnoses</span>
+                    </div>
+                    <div class="suspect-alert-text">Based on selected medications, these diagnoses should be evaluated and documented if clinically appropriate.</div>
+                </div>
+                <div id="suspect-section" class="code-section"></div>
+            </div>
+
+            <!-- Documentation Tab -->
+            <div id="documentation-tab" class="tab-content">
+                <p style="font-size: 12px; color: var(--tan); margin-bottom: 16px;">
+                    Documentation snippets for <strong>accepted diagnoses only</strong>. Edit as needed and check to include in summary.
+                </p>
+                <div id="doc-section"></div>
+            </div>
+
+            <!-- Summary Tab -->
+            <div id="summary-tab" class="tab-content">
+                <button class="action-btn secondary" style="margin-bottom: 16px;" onclick="copySummary()">
+                    📋 Copy to Clipboard
+                </button>
+                <div class="summary-note" id="summaryNote">
+                    Enter clinical values and accept codes to generate summary...
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn primary" onclick="generateSummary()">📝 Generate Summary</button>
+                <button class="action-btn athena" onclick="copyToAthena()">🏥 Copy to Athena</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>❤️ Cercanos Care | Quality & Risk Adjustment Tool</p>
+        <p style="margin-top: 4px;">© 2025 Cercanos Care. All rights reserved.</p>
+    </div>
+
+    <script>
+        // ============ MEDICATIONS DATABASE ============
+        const medications = [
+            { name: 'Metformin', class: 'Biguanide', suspects: ['E11.9', 'E11.65'] },
+            { name: 'Glipizide', class: 'Sulfonylurea', suspects: ['E11.9', 'E11.65'] },
+            { name: 'Glimepiride', class: 'Sulfonylurea', suspects: ['E11.9', 'E11.65'] },
+            { name: 'Ozempic (Semaglutide)', class: 'GLP-1', suspects: ['E11.9', 'E66.01'] },
+            { name: 'Trulicity (Dulaglutide)', class: 'GLP-1', suspects: ['E11.9', 'E66.01'] },
+            { name: 'Jardiance (Empagliflozin)', class: 'SGLT2i', suspects: ['E11.9', 'I50.9'] },
+            { name: 'Farxiga (Dapagliflozin)', class: 'SGLT2i', suspects: ['E11.9', 'I50.9', 'N18.3'] },
+            { name: 'Insulin Glargine', class: 'Insulin', suspects: ['E11.9', 'E11.65'] },
+            { name: 'Lisinopril', class: 'ACEi', suspects: ['I10', 'I50.9', 'N18.3'] },
+            { name: 'Losartan', class: 'ARB', suspects: ['I10', 'I50.9', 'N18.3'] },
+            { name: 'Amlodipine', class: 'CCB', suspects: ['I10'] },
+            { name: 'Metoprolol', class: 'Beta-blocker', suspects: ['I10', 'I50.9', 'I25.10'] },
+            { name: 'Carvedilol', class: 'Beta-blocker', suspects: ['I50.9', 'I10'] },
+            { name: 'HCTZ', class: 'Diuretic', suspects: ['I10'] },
+            { name: 'Furosemide', class: 'Loop Diuretic', suspects: ['I50.9', 'N18.4'] },
+            { name: 'Spironolactone', class: 'MRA', suspects: ['I50.9', 'I10'] },
+            { name: 'Atorvastatin', class: 'Statin', suspects: ['E78.5', 'I25.10'] },
+            { name: 'Rosuvastatin', class: 'Statin', suspects: ['E78.5', 'I25.10'] },
+            { name: 'Sertraline', class: 'SSRI', suspects: ['F32.1', 'F41.1'] },
+            { name: 'Escitalopram', class: 'SSRI', suspects: ['F32.1', 'F41.1'] },
+            { name: 'Bupropion', class: 'NDRI', suspects: ['F32.1', 'F17.210'] },
+            { name: 'Venlafaxine', class: 'SNRI', suspects: ['F32.1', 'F41.1'] },
+            { name: 'Duloxetine', class: 'SNRI', suspects: ['F32.1', 'F41.1', 'G89.4'] },
+            { name: 'Buspirone', class: 'Anxiolytic', suspects: ['F41.1'] },
+        ];
+
+        // ============ ICD-10 DATABASE ============
+        const icdDatabase = {
+            'I10': { desc: 'Essential hypertension', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
+            'I11.0': { desc: 'HTN heart disease with HF', hcc_ma: 'HCC 226', raf_ma: 0.368, hcc_comm: 'HCC 160', raf_comm: 0.155 },
+            'I12.9': { desc: 'Hypertensive CKD Stage 1-4', hcc_ma: null, raf_ma: 0, hcc_comm: 'HCC 184', raf_comm: 0.174 },
+            'I13.0': { desc: 'HTN heart + CKD w/ HF', hcc_ma: 'HCC 226', raf_ma: 0.368, hcc_comm: 'HCC 160', raf_comm: 0.155 },
+            'I25.10': { desc: 'CAD without angina', hcc_ma: 'HCC 226', raf_ma: 0.368, hcc_comm: null, raf_comm: 0 },
+            'I50.9': { desc: 'Heart failure, unspecified', hcc_ma: 'HCC 226', raf_ma: 0.368, hcc_comm: 'HCC 160', raf_comm: 0.155 },
+            'E11.9': { desc: 'Type 2 DM without complications', hcc_ma: 'HCC 37', raf_ma: 0.105, hcc_comm: 'HCC 19', raf_comm: 0.146 },
+            'E11.22': { desc: 'Type 2 DM with diabetic CKD', hcc_ma: 'HCC 37', raf_ma: 0.105, hcc_comm: 'HCC 18', raf_comm: 0.302 },
+            'E11.65': { desc: 'Type 2 DM with hyperglycemia', hcc_ma: 'HCC 37', raf_ma: 0.105, hcc_comm: 'HCC 19', raf_comm: 0.146 },
+            'E66.01': { desc: 'Morbid obesity, BMI ≥40', hcc_ma: 'HCC 48', raf_ma: 0.406, hcc_comm: 'HCC 25', raf_comm: 0.383 },
+            'E66.3': { desc: 'Overweight', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
+            'E66.811': { desc: 'Obesity class 1 (BMI 30-34.9)', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
+            'E66.812': { desc: 'Obesity class 2 (BMI 35-39.9)', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
+            'E66.813': { desc: 'Obesity class 3 (BMI ≥40)', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
+            'E78.5': { desc: 'Hyperlipidemia', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
+            'N18.1': { desc: 'CKD Stage 1', hcc_ma: null, raf_ma: 0, hcc_comm: 'HCC 184', raf_comm: 0.174 },
+            'N18.2': { desc: 'CKD Stage 2', hcc_ma: null, raf_ma: 0, hcc_comm: 'HCC 184', raf_comm: 0.174 },
+            'N18.3': { desc: 'CKD Stage 3', hcc_ma: null, raf_ma: 0, hcc_comm: 'HCC 184', raf_comm: 0.174 },
+            'N18.4': { desc: 'CKD Stage 4', hcc_ma: 'HCC 329', raf_ma: 0.289, hcc_comm: 'HCC 183', raf_comm: 0.335 },
+            'N18.5': { desc: 'CKD Stage 5', hcc_ma: 'HCC 326', raf_ma: 0.289, hcc_comm: 'HCC 183', raf_comm: 0.335 },
+            'F32.0': { desc: 'Major depression, single, mild', hcc_ma: 'HCC 155', raf_ma: 0.309, hcc_comm: 'HCC 132', raf_comm: 0.309 },
+            'F32.1': { desc: 'Major depression, single, moderate', hcc_ma: 'HCC 155', raf_ma: 0.309, hcc_comm: 'HCC 132', raf_comm: 0.309 },
+            'F32.2': { desc: 'Major depression, single, severe', hcc_ma: 'HCC 155', raf_ma: 0.309, hcc_comm: 'HCC 132', raf_comm: 0.309 },
+            'F33.1': { desc: 'Major depression, recurrent, moderate', hcc_ma: 'HCC 155', raf_ma: 0.309, hcc_comm: 'HCC 132', raf_comm: 0.309 },
+            'F41.1': { desc: 'Generalized anxiety disorder', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
+            'F17.210': { desc: 'Nicotine dependence, cigarettes', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
+            'G89.4': { desc: 'Chronic pain syndrome', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
+        };
+
+        // ============ STATE ============
+        let selectedMeds = new Set();
+        let acceptedQuality = new Set();
+        let acceptedIcd = new Set();
+        let acceptedSuspect = new Set();
+        let selectedDocs = new Set();
+        let docTexts = {};
+        let currentCodes = { cptii: [], gcode: [], mips: [], icd: [], suspect: [] };
+
+        // ============ INITIALIZE ============
+        function init() {
+            renderMedications();
+        }
+
+        function renderMedications() {
+            const grid = document.getElementById('medGrid');
+            grid.innerHTML = medications.map((med, i) => `
+                <div class="med-item ${selectedMeds.has(i) ? 'selected' : ''}" onclick="toggleMed(${i})">
+                    <input type="checkbox" ${selectedMeds.has(i) ? 'checked' : ''}>
+                    <span class="med-name">${med.name}</span>
+                    <span class="med-class">${med.class}</span>
+                </div>
+            `).join('');
+        }
+
+        function toggleMed(i) {
+            if (selectedMeds.has(i)) {
+                selectedMeds.delete(i);
+            } else {
+                selectedMeds.add(i);
+            }
+            renderMedications();
+            updateSuspectCodes();
+        }
+
+        // ============ CODE GENERATION ============
+        function generateCodes() {
+            const sbp = parseInt(document.getElementById('sbp').value) || 0;
+            const dbp = parseInt(document.getElementById('dbp').value) || 0;
+            const a1c = parseFloat(document.getElementById('a1c').value) || 0;
+            const ldl = parseInt(document.getElementById('ldl').value) || 0;
+            const bmi = parseFloat(document.getElementById('bmi').value) || 0;
+            const egfr = parseInt(document.getElementById('egfr').value) || 0;
+            const phq9 = parseInt(document.getElementById('phq9').value) || 0;
+
+            currentCodes = { cptii: [], gcode: [], mips: [], icd: [], suspect: [] };
+
+            // BP-based codes
+            if (sbp > 0 && dbp > 0) {
+                if (sbp < 140 && dbp < 90) {
+                    currentCodes.cptii.push({ code: '3074F', desc: 'BP < 140/90 mmHg' });
+                    currentCodes.gcode.push({ code: 'G8752', desc: 'BP < 140/90 (HEDIS CBP)' });
+                    currentCodes.mips.push({ code: 'G2215', desc: 'BP adequately controlled' });
+                }
+                if (sbp >= 140 || dbp >= 90) {
+                    currentCodes.cptii.push({ code: '3077F', desc: 'BP ≥ 140/90 mmHg' });
+                    currentCodes.gcode.push({ code: 'G8753', desc: 'BP ≥ 140/90 (not at goal)' });
+                }
+                currentCodes.icd.push({ code: 'I10', ...icdDatabase['I10'] });
+            }
+
+            // A1C-based codes
+            if (a1c > 0) {
+                if (a1c < 7) {
+                    currentCodes.cptii.push({ code: '3044F', desc: 'A1C < 7.0%' });
+                    currentCodes.gcode.push({ code: 'G9395', desc: 'HbA1c < 7% (HEDIS HBD)' });
+                    currentCodes.mips.push({ code: 'G2089', desc: 'Diabetes: HbA1c < 7%' });
+                } else if (a1c < 8) {
+                    currentCodes.cptii.push({ code: '3045F', desc: 'A1C 7.0-7.9%' });
+                    currentCodes.gcode.push({ code: 'G9396', desc: 'HbA1c 7-8% (HEDIS)' });
+                } else if (a1c < 9) {
+                    currentCodes.cptii.push({ code: '3046F', desc: 'A1C 8.0-8.9%' });
+                    currentCodes.gcode.push({ code: 'G9397', desc: 'HbA1c 8-9% (HEDIS)' });
+                } else {
+                    currentCodes.cptii.push({ code: '3047F', desc: 'A1C ≥ 9.0% (poor control)' });
+                    currentCodes.gcode.push({ code: 'G9398', desc: 'HbA1c ≥ 9% - poor control' });
+                    currentCodes.mips.push({ code: 'G2091', desc: 'Diabetes: HbA1c poor control >9%' });
+                }
+                currentCodes.cptii.push({ code: '3048F', desc: 'A1C level documented' });
+                currentCodes.icd.push({ code: 'E11.9', ...icdDatabase['E11.9'] });
+                if (a1c >= 9) {
+                    currentCodes.icd.push({ code: 'E11.65', ...icdDatabase['E11.65'] });
+                }
+            }
+
+            // LDL-based codes
+            if (ldl > 0) {
+                currentCodes.cptii.push({ code: '3048F', desc: 'LDL documented' });
+                if (ldl < 100) {
+                    currentCodes.cptii.push({ code: '3049F', desc: 'LDL < 100 mg/dL' });
+                    currentCodes.gcode.push({ code: 'G8786', desc: 'LDL < 100 (HEDIS SPC)' });
+                } else {
+                    currentCodes.cptii.push({ code: '3050F', desc: 'LDL ≥ 100 mg/dL' });
+                }
+                currentCodes.icd.push({ code: 'E78.5', ...icdDatabase['E78.5'] });
+            }
+
+            // BMI-based codes
+            if (bmi > 0) {
+                currentCodes.cptii.push({ code: '3008F', desc: 'BMI documented' });
+                if (bmi >= 25 && bmi < 30) {
+                    currentCodes.icd.push({ code: 'E66.3', ...icdDatabase['E66.3'] });
+                } else if (bmi >= 30 && bmi < 35) {
+                    currentCodes.icd.push({ code: 'E66.811', ...icdDatabase['E66.811'] });
+                } else if (bmi >= 35 && bmi < 40) {
+                    currentCodes.icd.push({ code: 'E66.812', ...icdDatabase['E66.812'] });
+                } else if (bmi >= 40) {
+                    currentCodes.icd.push({ code: 'E66.01', ...icdDatabase['E66.01'] });
+                }
+            }
+
+            // eGFR-based codes
+            if (egfr > 0) {
+                if (egfr >= 90) {
+                    currentCodes.cptii.push({ code: '3060F', desc: 'eGFR ≥ 90 (Stage 1 or normal)' });
+                } else if (egfr >= 60) {
+                    currentCodes.cptii.push({ code: '3061F', desc: 'eGFR 60-89 (Stage 2)' });
+                    currentCodes.icd.push({ code: 'N18.2', ...icdDatabase['N18.2'] });
+                } else if (egfr >= 45) {
+                    currentCodes.cptii.push({ code: '3062F', desc: 'eGFR 45-59 (Stage 3a)' });
+                    currentCodes.icd.push({ code: 'N18.3', ...icdDatabase['N18.3'] });
+                } else if (egfr >= 30) {
+                    currentCodes.cptii.push({ code: '3063F', desc: 'eGFR 30-44 (Stage 3b)' });
+                    currentCodes.icd.push({ code: 'N18.3', ...icdDatabase['N18.3'] });
+                } else if (egfr >= 15) {
+                    currentCodes.cptii.push({ code: '3064F', desc: 'eGFR 15-29 (Stage 4)' });
+                    currentCodes.icd.push({ code: 'N18.4', ...icdDatabase['N18.4'] });
+                } else {
+                    currentCodes.cptii.push({ code: '3065F', desc: 'eGFR < 15 (Stage 5)' });
+                    currentCodes.icd.push({ code: 'N18.5', ...icdDatabase['N18.5'] });
+                }
+            }
+
+            // PHQ-9 based codes
+            if (phq9 > 0) {
+                currentCodes.cptii.push({ code: '3088F', desc: 'PHQ-9 documented' });
+                currentCodes.gcode.push({ code: 'G8431', desc: 'Depression screening performed' });
+                currentCodes.mips.push({ code: 'G9509', desc: 'Depression screening documented' });
+                if (phq9 >= 10) {
+                    currentCodes.icd.push({ code: 'F32.1', ...icdDatabase['F32.1'] });
+                }
+            }
+
+            renderQualityCodes();
+            renderIcdCodes();
+            updateSuspectCodes();
+            updateCounters();
+        }
+
+        // ============ RENDER QUALITY CODES ============
+        function renderQualityCodes() {
+            renderCodeSection('cptii-section', 'CPT II Codes', 'quality', currentCodes.cptii, 'quality');
+            renderCodeSection('gcode-section', 'Medicare G-Codes', 'quality', currentCodes.gcode, 'quality');
+            renderCodeSection('mips-section', 'MIPS G-Codes', 'quality', currentCodes.mips, 'quality');
+        }
+
+        function renderCodeSection(containerId, title, badgeClass, codes, type) {
+            const container = document.getElementById(containerId);
+            if (codes.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const sectionKey = containerId.replace('-section', '');
+
+            container.innerHTML = `
+                <div class="section-controls">
+                    <div class="section-info">
+                        <span class="section-badge ${badgeClass}">${title}</span>
+                        <span class="section-title">${codes.length} code(s)</span>
+                    </div>
+                    <div class="section-buttons">
+                        <button class="section-btn accept-all" onclick="acceptAllSection('${sectionKey}', '${type}')">✓ Accept All</button>
+                        <button class="section-btn reject-all" onclick="rejectAllSection('${sectionKey}', '${type}')">✗ Reject All</button>
+                    </div>
+                </div>
+                <div class="code-list">
+                    ${codes.map((c, i) => renderCodeCard(c, `${sectionKey}-${i}`, type)).join('')}
+                </div>
+            `;
+        }
+
+        function renderCodeCard(code, id, type) {
+            const acceptedSet = type === 'quality' ? acceptedQuality : (type === 'icd' ? acceptedIcd : acceptedSuspect);
+            const isAccepted = acceptedSet.has(id);
+            const isRejected = acceptedSet.has(id + '-rejected');
+            const hasHcc = code.hcc_ma || code.hcc_comm;
+
+            let hccBadges = '';
+            if (code.hcc_ma) {
+                hccBadges += `<span class="hcc-badge"><span class="payer-badge ma">MA</span> ${code.hcc_ma} <span class="raf">+${code.raf_ma.toFixed(3)}</span></span>`;
+            }
+            if (code.hcc_comm) {
+                hccBadges += `<span class="hcc-badge"><span class="payer-badge comm">Comm</span> ${code.hcc_comm} <span class="raf">+${code.raf_comm.toFixed(3)}</span></span>`;
+            }
+
+            return `
+                <div class="code-card ${hasHcc ? 'has-hcc' : ''} ${isAccepted ? 'accepted' : ''} ${isRejected ? 'rejected' : ''}" id="card-${id}">
+                    <span class="code-value">${code.code}</span>
+                    <div class="code-info">
+                        <div class="code-desc">${code.desc}</div>
+                        <div class="code-meta">${hccBadges}</div>
+                    </div>
+                    <div class="action-btns">
+                        <button class="accept-btn ${isAccepted ? 'active' : ''}" onclick="acceptCode('${id}', '${type}')">✓ Accept</button>
+                        <button class="reject-btn ${isRejected ? 'active' : ''}" onclick="rejectCode('${id}', '${type}')">✗ Reject</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============ RENDER ICD CODES ============
+        function renderIcdCodes() {
+            const container = document.getElementById('icd-section');
+            if (currentCodes.icd.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><p>Enter clinical values to see ICD-10 recommendations</p></div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="section-controls">
+                    <div class="section-info">
+                        <span class="section-badge icd">ICD-10 Diagnoses</span>
+                        <span class="section-title">${currentCodes.icd.length} code(s)</span>
+                    </div>
+                    <div class="section-buttons">
+                        <button class="section-btn accept-all" onclick="acceptAllSection('icd', 'icd')">✓ Accept All</button>
+                        <button class="section-btn reject-all" onclick="rejectAllSection('icd', 'icd')">✗ Reject All</button>
+                    </div>
+                </div>
+                <div class="code-list">
+                    ${currentCodes.icd.map((c, i) => renderCodeCard(c, `icd-${i}`, 'icd')).join('')}
+                </div>
+            `;
+        }
+
+        // ============ SUSPECT CODES ============
+        function updateSuspectCodes() {
+            const selectedMedData = Array.from(selectedMeds).map(i => medications[i]);
+            const suspectSet = new Set();
+            selectedMedData.forEach(med => {
+                med.suspects.forEach(code => suspectSet.add(code));
+            });
+
+            // Remove codes already in ICD list
+            const icdCodes = currentCodes.icd.map(c => c.code);
+            const suspectCodes = Array.from(suspectSet).filter(code => !icdCodes.includes(code));
+
+            currentCodes.suspect = suspectCodes.map(code => ({
+                code,
+                ...icdDatabase[code]
+            })).filter(c => c.desc);
+
+            renderSuspectCodes();
+            updateCounters();
+        }
+
+        function renderSuspectCodes() {
+            const container = document.getElementById('suspect-section');
+            if (currentCodes.suspect.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💊</div><p>Select medications to see suspect diagnoses</p></div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="section-controls">
+                    <div class="section-info">
+                        <span class="section-badge suspect">Suspect Diagnoses</span>
+                        <span class="section-title">${currentCodes.suspect.length} code(s)</span>
+                    </div>
+                    <div class="section-buttons">
+                        <button class="section-btn accept-all" onclick="acceptAllSection('suspect', 'suspect')">✓ Accept All</button>
+                        <button class="section-btn reject-all" onclick="rejectAllSection('suspect', 'suspect')">✗ Reject All</button>
+                    </div>
+                </div>
+                <div class="code-list">
+                    ${currentCodes.suspect.map((c, i) => renderCodeCard(c, `suspect-${i}`, 'suspect')).join('')}
+                </div>
+            `;
+        }
+
+        // ============ ACCEPT/REJECT ACTIONS ============
+        function acceptCode(id, type) {
+            const set = type === 'quality' ? acceptedQuality : (type === 'icd' ? acceptedIcd : acceptedSuspect);
+            set.delete(id + '-rejected');
+            set.add(id);
+            refreshSection(type);
+            updateCounters();
+            updateRAF();
+            updateDocumentation();
+        }
+
+        function rejectCode(id, type) {
+            const set = type === 'quality' ? acceptedQuality : (type === 'icd' ? acceptedIcd : acceptedSuspect);
+            set.delete(id);
+            set.add(id + '-rejected');
+            refreshSection(type);
+            updateCounters();
+            updateRAF();
+            updateDocumentation();
+        }
+
+        function acceptAllSection(sectionKey, type) {
+            const set = type === 'quality' ? acceptedQuality : (type === 'icd' ? acceptedIcd : acceptedSuspect);
+            let codes;
+            if (sectionKey === 'cptii') codes = currentCodes.cptii;
+            else if (sectionKey === 'gcode') codes = currentCodes.gcode;
+            else if (sectionKey === 'mips') codes = currentCodes.mips;
+            else if (sectionKey === 'icd') codes = currentCodes.icd;
+            else if (sectionKey === 'suspect') codes = currentCodes.suspect;
+
+            codes.forEach((_, i) => {
+                const id = `${sectionKey}-${i}`;
+                set.delete(id + '-rejected');
+                set.add(id);
+            });
+            refreshSection(type);
+            updateCounters();
+            updateRAF();
+            updateDocumentation();
+        }
+
+        function rejectAllSection(sectionKey, type) {
+            const set = type === 'quality' ? acceptedQuality : (type === 'icd' ? acceptedIcd : acceptedSuspect);
+            let codes;
+            if (sectionKey === 'cptii') codes = currentCodes.cptii;
+            else if (sectionKey === 'gcode') codes = currentCodes.gcode;
+            else if (sectionKey === 'mips') codes = currentCodes.mips;
+            else if (sectionKey === 'icd') codes = currentCodes.icd;
+            else if (sectionKey === 'suspect') codes = currentCodes.suspect;
+
+            codes.forEach((_, i) => {
+                const id = `${sectionKey}-${i}`;
+                set.delete(id);
+                set.add(id + '-rejected');
+            });
+            refreshSection(type);
+            updateCounters();
+            updateRAF();
+            updateDocumentation();
+        }
+
+        function refreshSection(type) {
+            if (type === 'quality') renderQualityCodes();
+            else if (type === 'icd') renderIcdCodes();
+            else if (type === 'suspect') renderSuspectCodes();
+        }
+
+        // ============ RAF CALCULATION ============
+        function updateRAF() {
+            let rafMa = 0, rafComm = 0;
+
+            // ICD codes
+            currentCodes.icd.forEach((code, i) => {
+                if (acceptedIcd.has(`icd-${i}`)) {
+                    rafMa += code.raf_ma || 0;
+                    rafComm += code.raf_comm || 0;
+                }
+            });
+
+            // Suspect codes
+            currentCodes.suspect.forEach((code, i) => {
+                if (acceptedSuspect.has(`suspect-${i}`)) {
+                    rafMa += code.raf_ma || 0;
+                    rafComm += code.raf_comm || 0;
+                }
+            });
+
+            document.getElementById('rafMa').textContent = rafMa.toFixed(3);
+            document.getElementById('rafComm').textContent = rafComm.toFixed(3);
+        }
+
+        // ============ DOCUMENTATION ============
+        function updateDocumentation() {
+            const docContainer = document.getElementById('doc-section');
+            const acceptedDiagnoses = [];
+
+            // Get accepted ICD codes
+            currentCodes.icd.forEach((code, i) => {
+                if (acceptedIcd.has(`icd-${i}`)) {
+                    acceptedDiagnoses.push(code);
+                }
+            });
+
+            // Get accepted suspect codes
+            currentCodes.suspect.forEach((code, i) => {
+                if (acceptedSuspect.has(`suspect-${i}`)) {
+                    acceptedDiagnoses.push(code);
+                }
+            });
+
+            if (acceptedDiagnoses.length === 0) {
+                docContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>Accept diagnoses in the ICD-10 or Suspect tabs to see documentation snippets</p></div>';
+                return;
+            }
+
+            const docSnippets = {
+                'I10': 'Essential hypertension. BP monitored today. Continue current antihypertensive regimen.',
+                'I11.0': 'Hypertensive heart disease with heart failure. LVEF documented. On guideline-directed medical therapy.',
+                'I50.9': 'Heart failure. Patient on optimal medical management including ACE/ARB, beta-blocker, and diuretic as tolerated.',
+                'I25.10': 'Coronary artery disease without angina. On statin, aspirin, and beta-blocker. No chest pain.',
+                'E11.9': 'Type 2 diabetes mellitus. A1C reviewed today. Continue current diabetes management plan.',
+                'E11.65': 'Type 2 diabetes with hyperglycemia. A1C above goal. Discussed treatment intensification.',
+                'E11.22': 'Type 2 diabetes with diabetic chronic kidney disease. Monitoring renal function closely.',
+                'E66.01': 'Morbid obesity, BMI ≥40. Discussed lifestyle modifications and treatment options.',
+                'E66.811': 'Obesity class 1, BMI 30-34.9. Counseled on diet and exercise.',
+                'E66.812': 'Obesity class 2, BMI 35-39.9. Discussed weight management strategies.',
+                'E66.3': 'Overweight, BMI 25-29.9. Encouraged healthy lifestyle habits.',
+                'E78.5': 'Hyperlipidemia. On statin therapy. LDL at goal.',
+                'N18.2': 'CKD Stage 2. eGFR 60-89. Monitoring renal function.',
+                'N18.3': 'CKD Stage 3. eGFR 30-59. Avoiding nephrotoxic agents. On ACE/ARB for renal protection.',
+                'N18.4': 'CKD Stage 4. eGFR 15-29. Nephrology co-management. Discussed prognosis.',
+                'N18.5': 'CKD Stage 5. eGFR <15. Dialysis planning discussions initiated.',
+                'F32.1': 'Major depressive disorder, moderate. PHQ-9 score documented. On antidepressant therapy.',
+                'F41.1': 'Generalized anxiety disorder. Discussed coping strategies and treatment options.',
+                'F17.210': 'Tobacco use disorder, cigarettes. Counseled on cessation. Offered pharmacotherapy.',
+            };
+
+            docContainer.innerHTML = acceptedDiagnoses.map(code => {
+                const docId = `doc-${code.code}`;
+                const defaultText = docSnippets[code.code] || `${code.desc}. Addressed today. Plan documented.`;
+                const savedText = docTexts[docId] || defaultText;
+                const isSelected = selectedDocs.has(docId);
+
+                return `
+                    <div class="doc-card ${isSelected ? 'selected' : ''}">
+                        <div class="doc-card-header">
+                            <input type="checkbox" class="doc-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleDoc('${docId}')">
+                            <span class="doc-card-title">${code.code} - ${code.desc}</span>
+                        </div>
+                        <textarea class="doc-text" id="${docId}" onfocus="autoSelectDoc('${docId}')" oninput="saveDocText('${docId}')">${savedText}</textarea>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleDoc(id) {
+            if (selectedDocs.has(id)) {
+                selectedDocs.delete(id);
+            } else {
+                selectedDocs.add(id);
+            }
+            updateDocumentation();
+            updateCounters();
+        }
+
+        function autoSelectDoc(id) {
+            if (!selectedDocs.has(id)) {
+                selectedDocs.add(id);
+                updateDocumentation();
+                updateCounters();
+                // Re-focus the textarea
+                setTimeout(() => document.getElementById(id)?.focus(), 0);
+            }
+        }
+
+        function saveDocText(id) {
+            const textarea = document.getElementById(id);
+            if (textarea) {
+                docTexts[id] = textarea.value;
+            }
+        }
+
+        // ============ COUNTERS ============
+        function updateCounters() {
+            const qualityCount = Array.from(acceptedQuality).filter(id => !id.endsWith('-rejected')).length;
+            const icdCount = Array.from(acceptedIcd).filter(id => !id.endsWith('-rejected')).length;
+            const suspectCount = Array.from(acceptedSuspect).filter(id => !id.endsWith('-rejected')).length;
+            const docCount = selectedDocs.size;
+
+            document.getElementById('qualityCount').textContent = qualityCount;
+            document.getElementById('icdCount').textContent = icdCount;
+            document.getElementById('suspectCount').textContent = suspectCount;
+            document.getElementById('docCount').textContent = docCount;
+        }
+
+        // ============ SUMMARY GENERATION ============
+        function generateSummary() {
+            showTab('summary');
+
+            const sbp = document.getElementById('sbp').value;
+            const dbp = document.getElementById('dbp').value;
+            const a1c = document.getElementById('a1c').value;
+            const ldl = document.getElementById('ldl').value;
+            const bmi = document.getElementById('bmi').value;
+            const egfr = document.getElementById('egfr').value;
+            const phq9 = document.getElementById('phq9').value;
+
+            let summary = '=== CLINICAL ENCOUNTER SUMMARY ===\n\n';
+
+            // Vitals/Labs
+            summary += '--- VITALS & LABS ---\n';
+            if (sbp && dbp) summary += `BP: ${sbp}/${dbp} mmHg\n`;
+            if (a1c) summary += `A1C: ${a1c}%\n`;
+            if (ldl) summary += `LDL: ${ldl} mg/dL\n`;
+            if (bmi) summary += `BMI: ${bmi} kg/m²\n`;
+            if (egfr) summary += `eGFR: ${egfr} mL/min/1.73m²\n`;
+            if (phq9) summary += `PHQ-9: ${phq9}\n`;
+            summary += '\n';
+
+            // Accepted Quality Codes
+            const acceptedQualityCodes = [];
+            currentCodes.cptii.forEach((c, i) => { if (acceptedQuality.has(`cptii-${i}`)) acceptedQualityCodes.push(c); });
+            currentCodes.gcode.forEach((c, i) => { if (acceptedQuality.has(`gcode-${i}`)) acceptedQualityCodes.push(c); });
+            currentCodes.mips.forEach((c, i) => { if (acceptedQuality.has(`mips-${i}`)) acceptedQualityCodes.push(c); });
+
+            if (acceptedQualityCodes.length > 0) {
+                summary += '--- QUALITY CODES ---\n';
+                acceptedQualityCodes.forEach(c => {
+                    summary += `${c.code}: ${c.desc}\n`;
+                });
+                summary += '\n';
+            }
+
+            // Accepted ICD-10 Codes
+            const acceptedIcdCodes = [];
+            currentCodes.icd.forEach((c, i) => { if (acceptedIcd.has(`icd-${i}`)) acceptedIcdCodes.push(c); });
+            currentCodes.suspect.forEach((c, i) => { if (acceptedSuspect.has(`suspect-${i}`)) acceptedIcdCodes.push(c); });
+
+            if (acceptedIcdCodes.length > 0) {
+                summary += '--- DIAGNOSES (ICD-10) ---\n';
+                acceptedIcdCodes.forEach(c => {
+                    let line = `${c.code}: ${c.desc}`;
+                    if (c.hcc_ma) line += ` [MA: ${c.hcc_ma}, RAF +${c.raf_ma}]`;
+                    if (c.hcc_comm) line += ` [Comm: ${c.hcc_comm}, RAF +${c.raf_comm}]`;
+                    summary += line + '\n';
+                });
+                summary += '\n';
+            }
+
+            // Selected Documentation
+            if (selectedDocs.size > 0) {
+                summary += '--- ASSESSMENT & PLAN ---\n';
+                selectedDocs.forEach(id => {
+                    const textarea = document.getElementById(id);
+                    const text = textarea ? textarea.value : docTexts[id];
+                    if (text) {
+                        summary += text + '\n\n';
+                    }
+                });
+            }
+
+            // Selected Medications
+            if (selectedMeds.size > 0) {
+                summary += '--- CURRENT MEDICATIONS ---\n';
+                selectedMeds.forEach(i => {
+                    const med = medications[i];
+                    summary += `• ${med.name} (${med.class})\n`;
+                });
+            }
+
+            document.getElementById('summaryNote').textContent = summary;
+        }
+
+        function copySummary() {
+            const summary = document.getElementById('summaryNote').textContent;
+            navigator.clipboard.writeText(summary).then(() => {
+                alert('Summary copied to clipboard!');
+            });
+        }
+
+        function copyToAthena() {
+            generateSummary();
+            copySummary();
+            alert('Summary copied! Paste into Athena EHR.');
+        }
+
+        // ============ TABS ============
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active', 'suspect'));
+
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            const tabBtn = document.querySelector(`.tab[onclick="showTab('${tabName}')"]`);
+            if (tabBtn) {
+                tabBtn.classList.add('active');
+                if (tabName === 'suspect') tabBtn.classList.add('suspect');
+            }
+        }
+
+        // ============ CLEAR ALL ============
+        function clearAll() {
+            document.getElementById('sbp').value = '';
+            document.getElementById('dbp').value = '';
+            document.getElementById('a1c').value = '';
+            document.getElementById('ldl').value = '';
+            document.getElementById('bmi').value = '';
+            document.getElementById('egfr').value = '';
+            document.getElementById('phq9').value = '';
+
+            selectedMeds.clear();
+            acceptedQuality.clear();
+            acceptedIcd.clear();
+            acceptedSuspect.clear();
+            selectedDocs.clear();
+            docTexts = {};
+            currentCodes = { cptii: [], gcode: [], mips: [], icd: [], suspect: [] };
+
+            renderMedications();
+            renderQualityCodes();
+            renderIcdCodes();
+            renderSuspectCodes();
+            updateDocumentation();
+            updateCounters();
+            updateRAF();
+            document.getElementById('summaryNote').textContent = 'Enter clinical values and accept codes to generate summary...';
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
