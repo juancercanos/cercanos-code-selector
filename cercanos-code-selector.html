@@ -24,6 +24,7 @@
             --purple: #652875;
             --green: #4caf50;
             --red: #e53935;
+            --teal: #00897b;
         }
 
         /* Header */
@@ -67,7 +68,7 @@
         /* Main Layout */
         .main-container {
             display: grid;
-            grid-template-columns: 320px 1fr;
+            grid-template-columns: 350px 1fr;
             gap: 20px;
             padding: 20px;
             max-width: 1800px;
@@ -103,6 +104,7 @@
         .panel-icon.cardio { background: #fff3e0; }
         .panel-icon.behavioral { background: #e8f5e9; }
         .panel-icon.meds { background: #e3f2fd; }
+        .panel-icon.screening { background: #f3e5f5; }
         .panel-title { font-size: 14px; font-weight: 600; color: var(--deep-purple); }
 
         /* Input Groups */
@@ -134,13 +136,51 @@
             padding-right: 30px;
         }
 
-        /* Medication Grid */
+        /* Medication Accordion */
+        .med-category {
+            margin-bottom: 8px;
+            border: 1px solid var(--blush);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .med-category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--deep-purple);
+            transition: background 0.2s;
+        }
+        .med-category-header:hover { background: var(--blush); }
+        .med-category-header .count {
+            background: var(--olive);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+        }
+        .med-category-header .arrow {
+            transition: transform 0.2s;
+        }
+        .med-category.expanded .med-category-header .arrow {
+            transform: rotate(180deg);
+        }
+        .med-category-content {
+            display: none;
+            padding: 8px;
+            background: white;
+        }
+        .med-category.expanded .med-category-content {
+            display: block;
+        }
         .med-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 6px;
-            max-height: 300px;
-            overflow-y: auto;
         }
         .med-item {
             display: flex;
@@ -158,6 +198,45 @@
         .med-item input { cursor: pointer; }
         .med-name { flex: 1; color: var(--deep-purple); }
         .med-class { font-size: 9px; color: var(--tan); }
+
+        /* Screening Items */
+        .screening-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .screening-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: #faf8f5;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 11px;
+        }
+        .screening-item:hover { background: var(--blush); }
+        .screening-item.selected { background: linear-gradient(135deg, rgba(101,40,117,0.1) 0%, rgba(199,106,30,0.1) 100%); border: 1px solid var(--purple); }
+        .screening-item.inactive {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f0f0f0;
+        }
+        .screening-item input { cursor: pointer; }
+        .screening-item input:disabled { cursor: not-allowed; }
+        .screening-name { flex: 1; color: var(--deep-purple); font-weight: 500; }
+        .screening-age { font-size: 9px; color: var(--tan); white-space: nowrap; }
+        .screening-badge {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: 600;
+        }
+        .screening-badge.active { background: #e8f5e9; color: #2e7d32; }
+        .screening-badge.inactive { background: #ffebee; color: #c62828; }
 
         /* Right Panel */
         .right-panel {
@@ -497,6 +576,35 @@
         }
         .summary-section { margin-bottom: 12px; }
         .summary-section-title { font-weight: bold; color: var(--olive); margin-bottom: 4px; }
+
+        /* Diagnosis Dropdown Section */
+        .dx-dropdown-container {
+            margin-bottom: 10px;
+        }
+        .dx-selected-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .dx-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: linear-gradient(135deg, rgba(222,129,48,0.15) 0%, rgba(243,191,87,0.15) 100%);
+            border: 1px solid var(--orange);
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--deep-purple);
+        }
+        .dx-tag .remove-dx {
+            cursor: pointer;
+            color: var(--red);
+            font-weight: bold;
+            margin-left: 2px;
+        }
     </style>
 </head>
 <body>
@@ -511,12 +619,51 @@
 
     <div class="quick-links">
         <span class="quick-links-label">Quick Access:</span>
-        <a href="https://juancercanos.github.io/cercanos-code-selector/cercanos-code-selector.html" class="quick-link active">📋 Code Selector</a>
-        <a href="https://juancercanos.github.io/cercanos-pages/" class="quick-link">📊 Metrics Dashboard</a>
+        <a href="#" class="quick-link active">📋 Code Selector</a>
+        <a href="https://juancercanos.github.io/cercanos-caremanagement/#metrics" class="quick-link">📊 Metrics Dashboard</a>
     </div>
 
     <div class="main-container">
         <div class="left-panel">
+            <!-- Patient Demographics -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-icon" style="background: #e8f5e9;">👤</div>
+                    <div class="panel-title">Patient Demographics</div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label class="input-label">Age <span class="unit">(years)</span></label>
+                        <input type="number" class="input-field" id="patientAge" placeholder="65" min="0" max="120" onchange="updateScreeningEligibility()">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Sex</label>
+                        <select class="input-field" id="patientSex" onchange="updateScreeningEligibility()">
+                            <option value="">Select...</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="dx-dropdown-container">
+                    <label class="input-label">Add Cardiometabolic Diagnosis</label>
+                    <select class="input-field" id="dxDropdown" onchange="addDiagnosis()">
+                        <option value="">Select diagnosis to add...</option>
+                        <option value="E11.9">E11.9 - Type 2 Diabetes Mellitus</option>
+                        <option value="I10">I10 - Essential Hypertension</option>
+                        <option value="E78.5">E78.5 - Hyperlipidemia</option>
+                        <option value="E66.9">E66.9 - Obesity, unspecified</option>
+                        <option value="I50.9">I50.9 - Heart Failure</option>
+                        <option value="I25.10">I25.10 - Coronary Artery Disease</option>
+                        <option value="N18.3">N18.3 - Chronic Kidney Disease Stage 3</option>
+                        <option value="I48.91">I48.91 - Atrial Fibrillation</option>
+                        <option value="I73.9">I73.9 - Peripheral Vascular Disease</option>
+                        <option value="E03.9">E03.9 - Hypothyroidism</option>
+                    </select>
+                    <div class="dx-selected-list" id="selectedDxList"></div>
+                </div>
+            </div>
+
             <!-- Clinical Values -->
             <div class="panel">
                 <div class="panel-header">
@@ -554,7 +701,7 @@
                     </div>
                 </div>
                 <div class="input-row">
-                    <div class="input-group full-width">
+                    <div class="input-group">
                         <label class="input-label">PHQ-9 Score</label>
                         <select class="input-field" id="phq9">
                             <option value="">Select score...</option>
@@ -565,10 +712,30 @@
                             <option value="20">20-27 (Severe)</option>
                         </select>
                     </div>
+                    <div class="input-group">
+                        <label class="input-label">GAD-7 Score</label>
+                        <select class="input-field" id="gad7">
+                            <option value="">Select score...</option>
+                            <option value="0">0-4 (Minimal)</option>
+                            <option value="5">5-9 (Mild)</option>
+                            <option value="10">10-14 (Moderate)</option>
+                            <option value="15">15-21 (Severe)</option>
+                        </select>
+                    </div>
                 </div>
                 <button class="action-btn primary" style="width:100%; margin-top: 10px;" onclick="generateCodes()">
                     🔍 Generate Code Recommendations
                 </button>
+            </div>
+
+            <!-- USPSTF Screening -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-icon screening">🔬</div>
+                    <div class="panel-title">USPSTF Screening Measures</div>
+                </div>
+                <p style="font-size: 10px; color: var(--tan); margin-bottom: 10px;">Select screenings performed. Eligibility based on patient age/sex.</p>
+                <div class="screening-grid" id="screeningGrid"></div>
             </div>
 
             <!-- Medications -->
@@ -577,7 +744,7 @@
                     <div class="panel-icon meds">💊</div>
                     <div class="panel-title">Current Medications</div>
                 </div>
-                <div class="med-grid" id="medGrid"></div>
+                <div id="medAccordion"></div>
             </div>
         </div>
 
@@ -673,32 +840,100 @@
     </div>
 
     <script>
-        // ============ MEDICATIONS DATABASE ============
-        const medications = [
-            { name: 'Metformin', class: 'Biguanide', suspects: ['E11.9', 'E11.65'] },
-            { name: 'Glipizide', class: 'Sulfonylurea', suspects: ['E11.9', 'E11.65'] },
-            { name: 'Glimepiride', class: 'Sulfonylurea', suspects: ['E11.9', 'E11.65'] },
-            { name: 'Ozempic (Semaglutide)', class: 'GLP-1', suspects: ['E11.9', 'E66.01'] },
-            { name: 'Trulicity (Dulaglutide)', class: 'GLP-1', suspects: ['E11.9', 'E66.01'] },
-            { name: 'Jardiance (Empagliflozin)', class: 'SGLT2i', suspects: ['E11.9', 'I50.9'] },
-            { name: 'Farxiga (Dapagliflozin)', class: 'SGLT2i', suspects: ['E11.9', 'I50.9', 'N18.3'] },
-            { name: 'Insulin Glargine', class: 'Insulin', suspects: ['E11.9', 'E11.65'] },
-            { name: 'Lisinopril', class: 'ACEi', suspects: ['I10', 'I50.9', 'N18.3'] },
-            { name: 'Losartan', class: 'ARB', suspects: ['I10', 'I50.9', 'N18.3'] },
-            { name: 'Amlodipine', class: 'CCB', suspects: ['I10'] },
-            { name: 'Metoprolol', class: 'Beta-blocker', suspects: ['I10', 'I50.9', 'I25.10'] },
-            { name: 'Carvedilol', class: 'Beta-blocker', suspects: ['I50.9', 'I10'] },
-            { name: 'HCTZ', class: 'Diuretic', suspects: ['I10'] },
-            { name: 'Furosemide', class: 'Loop Diuretic', suspects: ['I50.9', 'N18.4'] },
-            { name: 'Spironolactone', class: 'MRA', suspects: ['I50.9', 'I10'] },
-            { name: 'Atorvastatin', class: 'Statin', suspects: ['E78.5', 'I25.10'] },
-            { name: 'Rosuvastatin', class: 'Statin', suspects: ['E78.5', 'I25.10'] },
-            { name: 'Sertraline', class: 'SSRI', suspects: ['F32.1', 'F41.1'] },
-            { name: 'Escitalopram', class: 'SSRI', suspects: ['F32.1', 'F41.1'] },
-            { name: 'Bupropion', class: 'NDRI', suspects: ['F32.1', 'F17.210'] },
-            { name: 'Venlafaxine', class: 'SNRI', suspects: ['F32.1', 'F41.1'] },
-            { name: 'Duloxetine', class: 'SNRI', suspects: ['F32.1', 'F41.1', 'G89.4'] },
-            { name: 'Buspirone', class: 'Anxiolytic', suspects: ['F41.1'] },
+        // ============ MEDICATIONS DATABASE (Grouped by Condition) ============
+        const medicationsByCondition = {
+            'Diabetes': [
+                { name: 'Metformin', class: 'Biguanide', suspects: ['E11.9', 'E11.65'] },
+                { name: 'Glipizide', class: 'Sulfonylurea', suspects: ['E11.9', 'E11.65'] },
+                { name: 'Glimepiride', class: 'Sulfonylurea', suspects: ['E11.9', 'E11.65'] },
+                { name: 'Ozempic (Semaglutide)', class: 'GLP-1', suspects: ['E11.9', 'E66.01'] },
+                { name: 'Trulicity (Dulaglutide)', class: 'GLP-1', suspects: ['E11.9', 'E66.01'] },
+                { name: 'Mounjaro (Tirzepatide)', class: 'GIP/GLP-1', suspects: ['E11.9', 'E66.01'] },
+                { name: 'Jardiance (Empagliflozin)', class: 'SGLT2i', suspects: ['E11.9', 'I50.9'] },
+                { name: 'Farxiga (Dapagliflozin)', class: 'SGLT2i', suspects: ['E11.9', 'I50.9', 'N18.3'] },
+                { name: 'Insulin Glargine', class: 'Insulin', suspects: ['E11.9', 'E11.65'] },
+                { name: 'Insulin Lispro', class: 'Insulin', suspects: ['E11.9', 'E11.65'] },
+            ],
+            'Hypertension': [
+                { name: 'Lisinopril', class: 'ACEi', suspects: ['I10', 'I50.9', 'N18.3'] },
+                { name: 'Enalapril', class: 'ACEi', suspects: ['I10', 'I50.9'] },
+                { name: 'Losartan', class: 'ARB', suspects: ['I10', 'I50.9', 'N18.3'] },
+                { name: 'Valsartan', class: 'ARB', suspects: ['I10', 'I50.9'] },
+                { name: 'Amlodipine', class: 'CCB', suspects: ['I10'] },
+                { name: 'Nifedipine', class: 'CCB', suspects: ['I10'] },
+                { name: 'Metoprolol', class: 'Beta-blocker', suspects: ['I10', 'I50.9', 'I25.10'] },
+                { name: 'Carvedilol', class: 'Beta-blocker', suspects: ['I50.9', 'I10'] },
+                { name: 'HCTZ', class: 'Thiazide', suspects: ['I10'] },
+                { name: 'Chlorthalidone', class: 'Thiazide', suspects: ['I10'] },
+            ],
+            'Heart Failure': [
+                { name: 'Furosemide', class: 'Loop Diuretic', suspects: ['I50.9', 'N18.4'] },
+                { name: 'Bumetanide', class: 'Loop Diuretic', suspects: ['I50.9'] },
+                { name: 'Spironolactone', class: 'MRA', suspects: ['I50.9', 'I10'] },
+                { name: 'Eplerenone', class: 'MRA', suspects: ['I50.9'] },
+                { name: 'Sacubitril/Valsartan', class: 'ARNI', suspects: ['I50.9'] },
+                { name: 'Ivabradine', class: 'HCN Blocker', suspects: ['I50.9'] },
+                { name: 'Digoxin', class: 'Cardiac Glycoside', suspects: ['I50.9', 'I48.91'] },
+                { name: 'Hydralazine', class: 'Vasodilator', suspects: ['I50.9', 'I10'] },
+                { name: 'Isosorbide Dinitrate', class: 'Nitrate', suspects: ['I50.9', 'I25.10'] },
+                { name: 'Torsemide', class: 'Loop Diuretic', suspects: ['I50.9'] },
+            ],
+            'Hyperlipidemia': [
+                { name: 'Atorvastatin', class: 'Statin', suspects: ['E78.5', 'I25.10'] },
+                { name: 'Rosuvastatin', class: 'Statin', suspects: ['E78.5', 'I25.10'] },
+                { name: 'Simvastatin', class: 'Statin', suspects: ['E78.5'] },
+                { name: 'Pravastatin', class: 'Statin', suspects: ['E78.5'] },
+                { name: 'Ezetimibe', class: 'Cholesterol Abs Inh', suspects: ['E78.5'] },
+                { name: 'Fenofibrate', class: 'Fibrate', suspects: ['E78.5'] },
+                { name: 'Icosapent Ethyl', class: 'Omega-3', suspects: ['E78.5', 'I25.10'] },
+                { name: 'Evolocumab', class: 'PCSK9i', suspects: ['E78.5', 'I25.10'] },
+                { name: 'Alirocumab', class: 'PCSK9i', suspects: ['E78.5', 'I25.10'] },
+                { name: 'Bempedoic Acid', class: 'ACL Inhibitor', suspects: ['E78.5'] },
+            ],
+            'Mental Health': [
+                { name: 'Sertraline', class: 'SSRI', suspects: ['F32.1', 'F41.1'] },
+                { name: 'Escitalopram', class: 'SSRI', suspects: ['F32.1', 'F41.1'] },
+                { name: 'Fluoxetine', class: 'SSRI', suspects: ['F32.1', 'F41.1'] },
+                { name: 'Paroxetine', class: 'SSRI', suspects: ['F32.1', 'F41.1'] },
+                { name: 'Bupropion', class: 'NDRI', suspects: ['F32.1', 'F17.210'] },
+                { name: 'Venlafaxine', class: 'SNRI', suspects: ['F32.1', 'F41.1'] },
+                { name: 'Duloxetine', class: 'SNRI', suspects: ['F32.1', 'F41.1', 'G89.4'] },
+                { name: 'Buspirone', class: 'Anxiolytic', suspects: ['F41.1'] },
+                { name: 'Mirtazapine', class: 'Tetracyclic', suspects: ['F32.1'] },
+                { name: 'Trazodone', class: 'SARI', suspects: ['F32.1', 'G47.00'] },
+            ],
+            'Anticoagulation': [
+                { name: 'Warfarin', class: 'VKA', suspects: ['I48.91', 'I26.99'] },
+                { name: 'Apixaban', class: 'DOAC', suspects: ['I48.91', 'I26.99'] },
+                { name: 'Rivaroxaban', class: 'DOAC', suspects: ['I48.91', 'I26.99'] },
+                { name: 'Dabigatran', class: 'DOAC', suspects: ['I48.91'] },
+                { name: 'Edoxaban', class: 'DOAC', suspects: ['I48.91'] },
+                { name: 'Aspirin 81mg', class: 'Antiplatelet', suspects: ['I25.10', 'I73.9'] },
+                { name: 'Clopidogrel', class: 'Antiplatelet', suspects: ['I25.10', 'I73.9'] },
+                { name: 'Ticagrelor', class: 'Antiplatelet', suspects: ['I25.10'] },
+                { name: 'Prasugrel', class: 'Antiplatelet', suspects: ['I25.10'] },
+                { name: 'Enoxaparin', class: 'LMWH', suspects: ['I26.99'] },
+            ],
+        };
+
+        // ============ USPSTF SCREENING MEASURES ============
+        const screeningMeasures = [
+            { id: 'dm-screen', name: 'Diabetes Screening', ages: [35, 70], code: 'G0108', docText: 'Diabetes screening performed per USPSTF guidelines. Fasting glucose/A1C obtained.' },
+            { id: 'lipid-screen', name: 'Lipid Screening', ages: [40, 75], code: '82465', docText: 'Lipid panel screening performed per USPSTF guidelines.' },
+            { id: 'crc-screen', name: 'Colorectal Cancer Screening', ages: [45, 75], code: 'G0121', docText: 'Colorectal cancer screening discussed/ordered per USPSTF. Options include colonoscopy, FIT, or Cologuard.' },
+            { id: 'mammo', name: 'Mammography', ages: [50, 74], sex: 'female', code: '77067', docText: 'Mammography screening discussed/ordered per USPSTF guidelines.' },
+            { id: 'ldct', name: 'Lung Cancer Screening (LDCT)', ages: [50, 80], code: 'G0296', docText: 'Low-dose CT lung cancer screening discussed. Patient counseled on eligibility criteria (20+ pack-year history).' },
+            { id: 'aaa', name: 'AAA Ultrasound Screening', ages: [65, 75], sex: 'male', code: '76706', docText: 'One-time AAA ultrasound screening discussed/ordered for male patient with smoking history.' },
+            { id: 'dexa', name: 'Osteoporosis Screening (DEXA)', ages: [65, 999], sex: 'female', code: '77080', docText: 'DEXA scan for osteoporosis screening discussed/ordered per USPSTF guidelines.' },
+            { id: 'hep-c', name: 'Hepatitis C Screening', ages: [18, 79], code: 'G0472', docText: 'One-time Hepatitis C screening performed per USPSTF guidelines.' },
+            { id: 'hiv', name: 'HIV Screening', ages: [15, 65], code: 'G0475', docText: 'HIV screening performed per USPSTF guidelines.' },
+            { id: 'depression', name: 'Depression Screening', ages: [12, 999], code: 'G0444', docText: 'Annual depression screening performed using PHQ-9. Results documented.' },
+            { id: 'anxiety', name: 'Anxiety Screening', ages: [8, 64], code: '96127', docText: 'Anxiety screening performed using GAD-7. Results documented.' },
+            { id: 'bp-screen', name: 'Blood Pressure Screening', ages: [18, 999], code: '99473', docText: 'Blood pressure screening performed. Patient counseled on lifestyle modifications if elevated.' },
+            { id: 'obesity', name: 'Obesity Screening/Counseling', ages: [6, 999], code: 'G0447', docText: 'BMI calculated and documented. Behavioral weight loss counseling provided.' },
+            { id: 'alcohol', name: 'Alcohol Misuse Screening', ages: [18, 999], code: 'G0442', docText: 'Alcohol misuse screening performed using AUDIT-C. Brief counseling provided if indicated.' },
+            { id: 'tobacco', name: 'Tobacco Cessation Counseling', ages: [18, 999], code: '99406', docText: 'Tobacco use assessed. Cessation counseling provided. Pharmacotherapy options discussed.' },
+            { id: 'statin-prev', name: 'Statin for CVD Prevention', ages: [40, 75], code: '4013F', docText: 'Statin therapy discussed for primary CVD prevention in patient with cardiovascular risk factors.' },
         ];
 
         // ============ ICD-10 DATABASE ============
@@ -708,16 +943,21 @@
             'I12.9': { desc: 'Hypertensive CKD Stage 1-4', hcc_ma: null, raf_ma: 0, hcc_comm: 'HCC 184', raf_comm: 0.174 },
             'I13.0': { desc: 'HTN heart + CKD w/ HF', hcc_ma: 'HCC 226', raf_ma: 0.368, hcc_comm: 'HCC 160', raf_comm: 0.155 },
             'I25.10': { desc: 'CAD without angina', hcc_ma: 'HCC 226', raf_ma: 0.368, hcc_comm: null, raf_comm: 0 },
+            'I48.91': { desc: 'Atrial fibrillation, unspecified', hcc_ma: 'HCC 223', raf_ma: 0.271, hcc_comm: null, raf_comm: 0 },
             'I50.9': { desc: 'Heart failure, unspecified', hcc_ma: 'HCC 226', raf_ma: 0.368, hcc_comm: 'HCC 160', raf_comm: 0.155 },
+            'I73.9': { desc: 'Peripheral vascular disease', hcc_ma: 'HCC 238', raf_ma: 0.288, hcc_comm: null, raf_comm: 0 },
+            'I26.99': { desc: 'Pulmonary embolism', hcc_ma: 'HCC 237', raf_ma: 0.350, hcc_comm: null, raf_comm: 0 },
             'E11.9': { desc: 'Type 2 DM without complications', hcc_ma: 'HCC 37', raf_ma: 0.105, hcc_comm: 'HCC 19', raf_comm: 0.146 },
             'E11.22': { desc: 'Type 2 DM with diabetic CKD', hcc_ma: 'HCC 37', raf_ma: 0.105, hcc_comm: 'HCC 18', raf_comm: 0.302 },
             'E11.65': { desc: 'Type 2 DM with hyperglycemia', hcc_ma: 'HCC 37', raf_ma: 0.105, hcc_comm: 'HCC 19', raf_comm: 0.146 },
-            'E66.01': { desc: 'Morbid obesity, BMI ≥40', hcc_ma: 'HCC 48', raf_ma: 0.406, hcc_comm: 'HCC 25', raf_comm: 0.383 },
+            'E66.01': { desc: 'Morbid obesity, BMI >=40', hcc_ma: 'HCC 48', raf_ma: 0.406, hcc_comm: 'HCC 25', raf_comm: 0.383 },
             'E66.3': { desc: 'Overweight', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
+            'E66.9': { desc: 'Obesity, unspecified', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
             'E66.811': { desc: 'Obesity class 1 (BMI 30-34.9)', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
             'E66.812': { desc: 'Obesity class 2 (BMI 35-39.9)', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
-            'E66.813': { desc: 'Obesity class 3 (BMI ≥40)', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
+            'E66.813': { desc: 'Obesity class 3 (BMI >=40)', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
             'E78.5': { desc: 'Hyperlipidemia', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
+            'E03.9': { desc: 'Hypothyroidism, unspecified', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
             'N18.1': { desc: 'CKD Stage 1', hcc_ma: null, raf_ma: 0, hcc_comm: 'HCC 184', raf_comm: 0.174 },
             'N18.2': { desc: 'CKD Stage 2', hcc_ma: null, raf_ma: 0, hcc_comm: 'HCC 184', raf_comm: 0.174 },
             'N18.3': { desc: 'CKD Stage 3', hcc_ma: null, raf_ma: 0, hcc_comm: 'HCC 184', raf_comm: 0.174 },
@@ -730,41 +970,171 @@
             'F41.1': { desc: 'Generalized anxiety disorder', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
             'F17.210': { desc: 'Nicotine dependence, cigarettes', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
             'G89.4': { desc: 'Chronic pain syndrome', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
+            'G47.00': { desc: 'Insomnia, unspecified', hcc_ma: null, raf_ma: 0, hcc_comm: null, raf_comm: 0 },
         };
 
         // ============ STATE ============
         let selectedMeds = new Set();
+        let expandedCategories = new Set(['Diabetes']); // Default expanded
         let acceptedQuality = new Set();
         let acceptedIcd = new Set();
         let acceptedSuspect = new Set();
         let selectedDocs = new Set();
+        let selectedScreenings = new Set();
+        let selectedDiagnoses = new Set();
         let docTexts = {};
         let currentCodes = { cptii: [], gcode: [], mips: [], icd: [], suspect: [] };
 
         // ============ INITIALIZE ============
         function init() {
             renderMedications();
+            renderScreenings();
         }
 
-        function renderMedications() {
-            const grid = document.getElementById('medGrid');
-            grid.innerHTML = medications.map((med, i) => `
-                <div class="med-item ${selectedMeds.has(i) ? 'selected' : ''}" onclick="toggleMed(${i})">
-                    <input type="checkbox" ${selectedMeds.has(i) ? 'checked' : ''}>
-                    <span class="med-name">${med.name}</span>
-                    <span class="med-class">${med.class}</span>
-                </div>
+        // ============ DIAGNOSIS DROPDOWN ============
+        function addDiagnosis() {
+            const dropdown = document.getElementById('dxDropdown');
+            const value = dropdown.value;
+            if (value && !selectedDiagnoses.has(value)) {
+                selectedDiagnoses.add(value);
+                renderSelectedDiagnoses();
+            }
+            dropdown.value = '';
+        }
+
+        function removeDiagnosis(code) {
+            selectedDiagnoses.delete(code);
+            renderSelectedDiagnoses();
+        }
+
+        function renderSelectedDiagnoses() {
+            const container = document.getElementById('selectedDxList');
+            const dxDescriptions = {
+                'E11.9': 'Type 2 DM',
+                'I10': 'HTN',
+                'E78.5': 'Hyperlipidemia',
+                'E66.9': 'Obesity',
+                'I50.9': 'Heart Failure',
+                'I25.10': 'CAD',
+                'N18.3': 'CKD Stage 3',
+                'I48.91': 'Afib',
+                'I73.9': 'PVD',
+                'E03.9': 'Hypothyroidism'
+            };
+            container.innerHTML = Array.from(selectedDiagnoses).map(code => `
+                <span class="dx-tag">
+                    ${code} - ${dxDescriptions[code] || 'Unknown'}
+                    <span class="remove-dx" onclick="removeDiagnosis('${code}')">x</span>
+                </span>
             `).join('');
         }
 
-        function toggleMed(i) {
-            if (selectedMeds.has(i)) {
-                selectedMeds.delete(i);
+        // ============ SCREENING MEASURES ============
+        function updateScreeningEligibility() {
+            renderScreenings();
+        }
+
+        function renderScreenings() {
+            const age = parseInt(document.getElementById('patientAge').value) || 0;
+            const sex = document.getElementById('patientSex').value;
+            const container = document.getElementById('screeningGrid');
+
+            container.innerHTML = screeningMeasures.map(screen => {
+                const ageEligible = age >= screen.ages[0] && age <= screen.ages[1];
+                const sexEligible = !screen.sex || screen.sex === sex;
+                const isEligible = ageEligible && sexEligible && age > 0;
+                const isSelected = selectedScreenings.has(screen.id);
+
+                return `
+                    <div class="screening-item ${isSelected ? 'selected' : ''} ${!isEligible ? 'inactive' : ''}"
+                         onclick="${isEligible ? `toggleScreening('${screen.id}')` : ''}">
+                        <input type="checkbox" ${isSelected ? 'checked' : ''} ${!isEligible ? 'disabled' : ''}>
+                        <span class="screening-name">${screen.name}</span>
+                        <span class="screening-age">${screen.ages[0]}-${screen.ages[1] === 999 ? 'Inf' : screen.ages[1]}${screen.sex ? ` (${screen.sex})` : ''}</span>
+                        <span class="screening-badge ${isEligible ? 'active' : 'inactive'}">${isEligible ? 'Eligible' : 'N/A'}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleScreening(id) {
+            if (selectedScreenings.has(id)) {
+                selectedScreenings.delete(id);
             } else {
-                selectedMeds.add(i);
+                selectedScreenings.add(id);
+            }
+            renderScreenings();
+            updateDocumentation();
+        }
+
+        // ============ MEDICATIONS ============
+        function renderMedications() {
+            const container = document.getElementById('medAccordion');
+            container.innerHTML = Object.entries(medicationsByCondition).map(([category, meds]) => {
+                const isExpanded = expandedCategories.has(category);
+                const selectedCount = meds.filter((_, i) => selectedMeds.has(`${category}-${i}`)).length;
+
+                return `
+                    <div class="med-category ${isExpanded ? 'expanded' : ''}">
+                        <div class="med-category-header" onclick="toggleCategory('${category}')">
+                            <span>${category}</span>
+                            <span class="count">${selectedCount}/${meds.length}</span>
+                            <span class="arrow">v</span>
+                        </div>
+                        <div class="med-category-content">
+                            <div class="med-grid">
+                                ${meds.map((med, i) => {
+                                    const medId = `${category}-${i}`;
+                                    const isSelected = selectedMeds.has(medId);
+                                    return `
+                                        <div class="med-item ${isSelected ? 'selected' : ''}" onclick="toggleMed('${medId}', '${category}', ${i})">
+                                            <input type="checkbox" ${isSelected ? 'checked' : ''}>
+                                            <span class="med-name">${med.name}</span>
+                                            <span class="med-class">${med.class}</span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleCategory(category) {
+            if (expandedCategories.has(category)) {
+                expandedCategories.delete(category);
+            } else {
+                expandedCategories.add(category);
+            }
+            renderMedications();
+        }
+
+        function toggleMed(medId, category, index) {
+            if (selectedMeds.has(medId)) {
+                selectedMeds.delete(medId);
+            } else {
+                selectedMeds.add(medId);
             }
             renderMedications();
             updateSuspectCodes();
+        }
+
+        function getSelectedMedications() {
+            const meds = [];
+            selectedMeds.forEach(medId => {
+                const lastDash = medId.lastIndexOf('-');
+                const cat = medId.substring(0, lastDash);
+                const idx = parseInt(medId.substring(lastDash + 1));
+                if (medicationsByCondition[cat] && medicationsByCondition[cat][idx]) {
+                    meds.push(medicationsByCondition[cat][idx]);
+                }
+            });
+            return meds;
+        }
+
+        function isOnStatin() {
+            return getSelectedMedications().some(med => med.class === 'Statin');
         }
 
         // ============ CODE GENERATION ============
@@ -776,6 +1146,7 @@
             const bmi = parseFloat(document.getElementById('bmi').value) || 0;
             const egfr = parseInt(document.getElementById('egfr').value) || 0;
             const phq9 = parseInt(document.getElementById('phq9').value) || 0;
+            const gad7 = parseInt(document.getElementById('gad7').value) || 0;
 
             currentCodes = { cptii: [], gcode: [], mips: [], icd: [], suspect: [] };
 
@@ -787,8 +1158,8 @@
                     currentCodes.mips.push({ code: 'G2215', desc: 'BP adequately controlled' });
                 }
                 if (sbp >= 140 || dbp >= 90) {
-                    currentCodes.cptii.push({ code: '3077F', desc: 'BP ≥ 140/90 mmHg' });
-                    currentCodes.gcode.push({ code: 'G8753', desc: 'BP ≥ 140/90 (not at goal)' });
+                    currentCodes.cptii.push({ code: '3077F', desc: 'BP >= 140/90 mmHg' });
+                    currentCodes.gcode.push({ code: 'G8753', desc: 'BP >= 140/90 (not at goal)' });
                 }
                 currentCodes.icd.push({ code: 'I10', ...icdDatabase['I10'] });
             }
@@ -806,8 +1177,8 @@
                     currentCodes.cptii.push({ code: '3046F', desc: 'A1C 8.0-8.9%' });
                     currentCodes.gcode.push({ code: 'G9397', desc: 'HbA1c 8-9% (HEDIS)' });
                 } else {
-                    currentCodes.cptii.push({ code: '3047F', desc: 'A1C ≥ 9.0% (poor control)' });
-                    currentCodes.gcode.push({ code: 'G9398', desc: 'HbA1c ≥ 9% - poor control' });
+                    currentCodes.cptii.push({ code: '3047F', desc: 'A1C >= 9.0% (poor control)' });
+                    currentCodes.gcode.push({ code: 'G9398', desc: 'HbA1c >= 9% - poor control' });
                     currentCodes.mips.push({ code: 'G2091', desc: 'Diabetes: HbA1c poor control >9%' });
                 }
                 currentCodes.cptii.push({ code: '3048F', desc: 'A1C level documented' });
@@ -817,16 +1188,19 @@
                 }
             }
 
-            // LDL-based codes
+            // LDL-based codes - FIXED: Only add hyperlipidemia if on statin or manually selected
             if (ldl > 0) {
                 currentCodes.cptii.push({ code: '3048F', desc: 'LDL documented' });
                 if (ldl < 100) {
                     currentCodes.cptii.push({ code: '3049F', desc: 'LDL < 100 mg/dL' });
                     currentCodes.gcode.push({ code: 'G8786', desc: 'LDL < 100 (HEDIS SPC)' });
                 } else {
-                    currentCodes.cptii.push({ code: '3050F', desc: 'LDL ≥ 100 mg/dL' });
+                    currentCodes.cptii.push({ code: '3050F', desc: 'LDL >= 100 mg/dL' });
                 }
-                currentCodes.icd.push({ code: 'E78.5', ...icdDatabase['E78.5'] });
+                // Only add hyperlipidemia diagnosis if patient is on a statin or has it in selected diagnoses
+                if (isOnStatin() || selectedDiagnoses.has('E78.5')) {
+                    currentCodes.icd.push({ code: 'E78.5', ...icdDatabase['E78.5'] });
+                }
             }
 
             // BMI-based codes
@@ -846,7 +1220,7 @@
             // eGFR-based codes
             if (egfr > 0) {
                 if (egfr >= 90) {
-                    currentCodes.cptii.push({ code: '3060F', desc: 'eGFR ≥ 90 (Stage 1 or normal)' });
+                    currentCodes.cptii.push({ code: '3060F', desc: 'eGFR >= 90 (Stage 1 or normal)' });
                 } else if (egfr >= 60) {
                     currentCodes.cptii.push({ code: '3061F', desc: 'eGFR 60-89 (Stage 2)' });
                     currentCodes.icd.push({ code: 'N18.2', ...icdDatabase['N18.2'] });
@@ -874,6 +1248,22 @@
                     currentCodes.icd.push({ code: 'F32.1', ...icdDatabase['F32.1'] });
                 }
             }
+
+            // GAD-7 based codes (NEW)
+            if (gad7 > 0) {
+                currentCodes.cptii.push({ code: '96127', desc: 'GAD-7 screening documented' });
+                currentCodes.gcode.push({ code: 'G0444', desc: 'Anxiety screening performed' });
+                if (gad7 >= 10) {
+                    currentCodes.icd.push({ code: 'F41.1', ...icdDatabase['F41.1'] });
+                }
+            }
+
+            // Add manually selected diagnoses to ICD codes if not already present
+            selectedDiagnoses.forEach(code => {
+                if (!currentCodes.icd.some(c => c.code === code) && icdDatabase[code]) {
+                    currentCodes.icd.push({ code, ...icdDatabase[code] });
+                }
+            });
 
             renderQualityCodes();
             renderIcdCodes();
@@ -904,8 +1294,8 @@
                         <span class="section-title">${codes.length} code(s)</span>
                     </div>
                     <div class="section-buttons">
-                        <button class="section-btn accept-all" onclick="acceptAllSection('${sectionKey}', '${type}')">✓ Accept All</button>
-                        <button class="section-btn reject-all" onclick="rejectAllSection('${sectionKey}', '${type}')">✗ Reject All</button>
+                        <button class="section-btn accept-all" onclick="acceptAllSection('${sectionKey}', '${type}')">OK Accept All</button>
+                        <button class="section-btn reject-all" onclick="rejectAllSection('${sectionKey}', '${type}')">X Reject All</button>
                     </div>
                 </div>
                 <div class="code-list">
@@ -936,8 +1326,8 @@
                         <div class="code-meta">${hccBadges}</div>
                     </div>
                     <div class="action-btns">
-                        <button class="accept-btn ${isAccepted ? 'active' : ''}" onclick="acceptCode('${id}', '${type}')">✓ Accept</button>
-                        <button class="reject-btn ${isRejected ? 'active' : ''}" onclick="rejectCode('${id}', '${type}')">✗ Reject</button>
+                        <button class="accept-btn ${isAccepted ? 'active' : ''}" onclick="acceptCode('${id}', '${type}')">OK Accept</button>
+                        <button class="reject-btn ${isRejected ? 'active' : ''}" onclick="rejectCode('${id}', '${type}')">X Reject</button>
                     </div>
                 </div>
             `;
@@ -947,7 +1337,7 @@
         function renderIcdCodes() {
             const container = document.getElementById('icd-section');
             if (currentCodes.icd.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><p>Enter clinical values to see ICD-10 recommendations</p></div>';
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">LIST</div><p>Enter clinical values to see ICD-10 recommendations</p></div>';
                 return;
             }
 
@@ -958,8 +1348,8 @@
                         <span class="section-title">${currentCodes.icd.length} code(s)</span>
                     </div>
                     <div class="section-buttons">
-                        <button class="section-btn accept-all" onclick="acceptAllSection('icd', 'icd')">✓ Accept All</button>
-                        <button class="section-btn reject-all" onclick="rejectAllSection('icd', 'icd')">✗ Reject All</button>
+                        <button class="section-btn accept-all" onclick="acceptAllSection('icd', 'icd')">OK Accept All</button>
+                        <button class="section-btn reject-all" onclick="rejectAllSection('icd', 'icd')">X Reject All</button>
                     </div>
                 </div>
                 <div class="code-list">
@@ -970,7 +1360,7 @@
 
         // ============ SUSPECT CODES ============
         function updateSuspectCodes() {
-            const selectedMedData = Array.from(selectedMeds).map(i => medications[i]);
+            const selectedMedData = getSelectedMedications();
             const suspectSet = new Set();
             selectedMedData.forEach(med => {
                 med.suspects.forEach(code => suspectSet.add(code));
@@ -992,7 +1382,7 @@
         function renderSuspectCodes() {
             const container = document.getElementById('suspect-section');
             if (currentCodes.suspect.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💊</div><p>Select medications to see suspect diagnoses</p></div>';
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">PILL</div><p>Select medications to see suspect diagnoses</p></div>';
                 return;
             }
 
@@ -1003,8 +1393,8 @@
                         <span class="section-title">${currentCodes.suspect.length} code(s)</span>
                     </div>
                     <div class="section-buttons">
-                        <button class="section-btn accept-all" onclick="acceptAllSection('suspect', 'suspect')">✓ Accept All</button>
-                        <button class="section-btn reject-all" onclick="rejectAllSection('suspect', 'suspect')">✗ Reject All</button>
+                        <button class="section-btn accept-all" onclick="acceptAllSection('suspect', 'suspect')">OK Accept All</button>
+                        <button class="section-btn reject-all" onclick="rejectAllSection('suspect', 'suspect')">X Reject All</button>
                     </div>
                 </div>
                 <div class="code-list">
@@ -1123,8 +1513,21 @@
                 }
             });
 
-            if (acceptedDiagnoses.length === 0) {
-                docContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><p>Accept diagnoses in the ICD-10 or Suspect tabs to see documentation snippets</p></div>';
+            // Add screening documentation
+            const screeningDocs = [];
+            selectedScreenings.forEach(id => {
+                const screen = screeningMeasures.find(s => s.id === id);
+                if (screen) {
+                    screeningDocs.push({
+                        code: screen.code,
+                        desc: screen.name,
+                        docText: screen.docText
+                    });
+                }
+            });
+
+            if (acceptedDiagnoses.length === 0 && screeningDocs.length === 0) {
+                docContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">DOC</div><p>Accept diagnoses or select screenings to see documentation snippets</p></div>';
                 return;
             }
 
@@ -1133,39 +1536,71 @@
                 'I11.0': 'Hypertensive heart disease with heart failure. LVEF documented. On guideline-directed medical therapy.',
                 'I50.9': 'Heart failure. Patient on optimal medical management including ACE/ARB, beta-blocker, and diuretic as tolerated.',
                 'I25.10': 'Coronary artery disease without angina. On statin, aspirin, and beta-blocker. No chest pain.',
+                'I48.91': 'Atrial fibrillation. Rate/rhythm control addressed. Anticoagulation therapy discussed.',
+                'I73.9': 'Peripheral vascular disease. Claudication symptoms assessed. On antiplatelet therapy.',
                 'E11.9': 'Type 2 diabetes mellitus. A1C reviewed today. Continue current diabetes management plan.',
                 'E11.65': 'Type 2 diabetes with hyperglycemia. A1C above goal. Discussed treatment intensification.',
                 'E11.22': 'Type 2 diabetes with diabetic chronic kidney disease. Monitoring renal function closely.',
-                'E66.01': 'Morbid obesity, BMI ≥40. Discussed lifestyle modifications and treatment options.',
+                'E66.01': 'Morbid obesity, BMI 40 or higher. Discussed lifestyle modifications and treatment options.',
                 'E66.811': 'Obesity class 1, BMI 30-34.9. Counseled on diet and exercise.',
                 'E66.812': 'Obesity class 2, BMI 35-39.9. Discussed weight management strategies.',
                 'E66.3': 'Overweight, BMI 25-29.9. Encouraged healthy lifestyle habits.',
-                'E78.5': 'Hyperlipidemia. On statin therapy. LDL at goal.',
+                'E66.9': 'Obesity documented. Discussed lifestyle modifications and weight management.',
+                'E78.5': 'Hyperlipidemia. On statin therapy. LDL level reviewed.',
+                'E03.9': 'Hypothyroidism. TSH levels monitored. Continue current thyroid replacement therapy.',
                 'N18.2': 'CKD Stage 2. eGFR 60-89. Monitoring renal function.',
                 'N18.3': 'CKD Stage 3. eGFR 30-59. Avoiding nephrotoxic agents. On ACE/ARB for renal protection.',
                 'N18.4': 'CKD Stage 4. eGFR 15-29. Nephrology co-management. Discussed prognosis.',
-                'N18.5': 'CKD Stage 5. eGFR <15. Dialysis planning discussions initiated.',
+                'N18.5': 'CKD Stage 5. eGFR less than 15. Dialysis planning discussions initiated.',
                 'F32.1': 'Major depressive disorder, moderate. PHQ-9 score documented. On antidepressant therapy.',
-                'F41.1': 'Generalized anxiety disorder. Discussed coping strategies and treatment options.',
+                'F41.1': 'Generalized anxiety disorder. GAD-7 score documented. Treatment options discussed.',
                 'F17.210': 'Tobacco use disorder, cigarettes. Counseled on cessation. Offered pharmacotherapy.',
             };
 
-            docContainer.innerHTML = acceptedDiagnoses.map(code => {
-                const docId = `doc-${code.code}`;
-                const defaultText = docSnippets[code.code] || `${code.desc}. Addressed today. Plan documented.`;
-                const savedText = docTexts[docId] || defaultText;
-                const isSelected = selectedDocs.has(docId);
+            let html = '';
 
-                return `
-                    <div class="doc-card ${isSelected ? 'selected' : ''}">
-                        <div class="doc-card-header">
-                            <input type="checkbox" class="doc-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleDoc('${docId}')">
-                            <span class="doc-card-title">${code.code} - ${code.desc}</span>
+            // Screening documentation cards
+            if (screeningDocs.length > 0) {
+                html += '<h4 style="font-size: 12px; color: var(--purple); margin-bottom: 10px;">Screening Orders</h4>';
+                screeningDocs.forEach(screen => {
+                    const docId = `doc-screen-${screen.code}`;
+                    const savedText = docTexts[docId] || screen.docText;
+                    const isSelected = selectedDocs.has(docId);
+
+                    html += `
+                        <div class="doc-card ${isSelected ? 'selected' : ''}">
+                            <div class="doc-card-header">
+                                <input type="checkbox" class="doc-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleDoc('${docId}')">
+                                <span class="doc-card-title">${screen.code} - ${screen.desc}</span>
+                            </div>
+                            <textarea class="doc-text" id="${docId}" onfocus="autoSelectDoc('${docId}')" oninput="saveDocText('${docId}')">${savedText}</textarea>
                         </div>
-                        <textarea class="doc-text" id="${docId}" onfocus="autoSelectDoc('${docId}')" oninput="saveDocText('${docId}')">${savedText}</textarea>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                });
+            }
+
+            // Diagnosis documentation cards
+            if (acceptedDiagnoses.length > 0) {
+                html += '<h4 style="font-size: 12px; color: var(--olive); margin: 16px 0 10px;">Diagnosis Documentation</h4>';
+                acceptedDiagnoses.forEach(code => {
+                    const docId = `doc-${code.code}`;
+                    const defaultText = docSnippets[code.code] || `${code.desc}. Addressed today. Plan documented.`;
+                    const savedText = docTexts[docId] || defaultText;
+                    const isSelected = selectedDocs.has(docId);
+
+                    html += `
+                        <div class="doc-card ${isSelected ? 'selected' : ''}">
+                            <div class="doc-card-header">
+                                <input type="checkbox" class="doc-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleDoc('${docId}')">
+                                <span class="doc-card-title">${code.code} - ${code.desc}</span>
+                            </div>
+                            <textarea class="doc-text" id="${docId}" onfocus="autoSelectDoc('${docId}')" oninput="saveDocText('${docId}')">${savedText}</textarea>
+                        </div>
+                    `;
+                });
+            }
+
+            docContainer.innerHTML = html;
         }
 
         function toggleDoc(id) {
@@ -1212,6 +1647,8 @@
         function generateSummary() {
             showTab('summary');
 
+            const age = document.getElementById('patientAge').value;
+            const sex = document.getElementById('patientSex').value;
             const sbp = document.getElementById('sbp').value;
             const dbp = document.getElementById('dbp').value;
             const a1c = document.getElementById('a1c').value;
@@ -1219,17 +1656,27 @@
             const bmi = document.getElementById('bmi').value;
             const egfr = document.getElementById('egfr').value;
             const phq9 = document.getElementById('phq9').value;
+            const gad7 = document.getElementById('gad7').value;
 
             let summary = '=== CLINICAL ENCOUNTER SUMMARY ===\n\n';
+
+            // Demographics
+            if (age || sex) {
+                summary += '--- DEMOGRAPHICS ---\n';
+                if (age) summary += `Age: ${age} years\n`;
+                if (sex) summary += `Sex: ${sex.charAt(0).toUpperCase() + sex.slice(1)}\n`;
+                summary += '\n';
+            }
 
             // Vitals/Labs
             summary += '--- VITALS & LABS ---\n';
             if (sbp && dbp) summary += `BP: ${sbp}/${dbp} mmHg\n`;
             if (a1c) summary += `A1C: ${a1c}%\n`;
             if (ldl) summary += `LDL: ${ldl} mg/dL\n`;
-            if (bmi) summary += `BMI: ${bmi} kg/m²\n`;
-            if (egfr) summary += `eGFR: ${egfr} mL/min/1.73m²\n`;
+            if (bmi) summary += `BMI: ${bmi} kg/m2\n`;
+            if (egfr) summary += `eGFR: ${egfr} mL/min/1.73m2\n`;
             if (phq9) summary += `PHQ-9: ${phq9}\n`;
+            if (gad7) summary += `GAD-7: ${gad7}\n`;
             summary += '\n';
 
             // Accepted Quality Codes
@@ -1242,6 +1689,18 @@
                 summary += '--- QUALITY CODES ---\n';
                 acceptedQualityCodes.forEach(c => {
                     summary += `${c.code}: ${c.desc}\n`;
+                });
+                summary += '\n';
+            }
+
+            // Screening Orders
+            if (selectedScreenings.size > 0) {
+                summary += '--- SCREENING ORDERS ---\n';
+                selectedScreenings.forEach(id => {
+                    const screen = screeningMeasures.find(s => s.id === id);
+                    if (screen) {
+                        summary += `${screen.code}: ${screen.name}\n`;
+                    }
                 });
                 summary += '\n';
             }
@@ -1275,11 +1734,11 @@
             }
 
             // Selected Medications
-            if (selectedMeds.size > 0) {
+            const selectedMedData = getSelectedMedications();
+            if (selectedMedData.length > 0) {
                 summary += '--- CURRENT MEDICATIONS ---\n';
-                selectedMeds.forEach(i => {
-                    const med = medications[i];
-                    summary += `• ${med.name} (${med.class})\n`;
+                selectedMedData.forEach(med => {
+                    summary += `- ${med.name} (${med.class})\n`;
                 });
             }
 
@@ -1314,6 +1773,8 @@
 
         // ============ CLEAR ALL ============
         function clearAll() {
+            document.getElementById('patientAge').value = '';
+            document.getElementById('patientSex').value = '';
             document.getElementById('sbp').value = '';
             document.getElementById('dbp').value = '';
             document.getElementById('a1c').value = '';
@@ -1321,8 +1782,11 @@
             document.getElementById('bmi').value = '';
             document.getElementById('egfr').value = '';
             document.getElementById('phq9').value = '';
+            document.getElementById('gad7').value = '';
 
             selectedMeds.clear();
+            selectedDiagnoses.clear();
+            selectedScreenings.clear();
             acceptedQuality.clear();
             acceptedIcd.clear();
             acceptedSuspect.clear();
@@ -1331,6 +1795,8 @@
             currentCodes = { cptii: [], gcode: [], mips: [], icd: [], suspect: [] };
 
             renderMedications();
+            renderScreenings();
+            renderSelectedDiagnoses();
             renderQualityCodes();
             renderIcdCodes();
             renderSuspectCodes();
